@@ -156,11 +156,28 @@ namespace VncSharp
 
 			// Try to connect, passing any exceptions up to the caller, and if successful, 
 			// wrap a big endian Binary Reader and Binary Writer around the resulting stream.
+			System.Net.IPHostEntry hostEntity = System.Net.Dns.GetHostEntry("localhost");
+			System.Net.IPAddress ipAddress = hostEntity.AddressList[0];
+			System.Net.IPEndPoint remoteEP = new System.Net.IPEndPoint(ipAddress, port);
+			// IPv6 Changes
+			tcp = new TcpClient
+			{
+				NoDelay = true,
+				Client = new Socket(ipAddress.AddressFamily,
+					SocketType.Stream, ProtocolType.Tcp)
+			};
+
+			tcp.ReceiveTimeout = RECEIVE_TIMEOUT; // set receive timeout (15s default)
+			tcp.SendTimeout = SEND_TIMEOUT;    // set send timeout to (15s default)
+
+			tcp.Connect(remoteEP);
+			/*
 			tcp = new TcpClient {NoDelay = true}; // turn-off Nagle's Algorithm for better interactive performance with host.
 
 			tcp.ReceiveTimeout = RECEIVE_TIMEOUT; // set receive timeout (15s default)
 			tcp.SendTimeout = SEND_TIMEOUT;    // set send timeout to (15s default)
 			tcp.Connect(host, port);
+			*/
 			stream = tcp.GetStream();
 
 			stream.ReadTimeout = RECEIVE_TIMEOUT; // set read timeout to (15s default)
